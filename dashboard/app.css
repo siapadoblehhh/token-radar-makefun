@@ -48,6 +48,12 @@ a { color: var(--accent); }
 .skip:focus { left: var(--step-4); top: var(--step-4); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* The page shell: one centred column, wide enough for the table, with room to breathe.
+   The shell caps at 1320px so the table never stretches into a desert on a wide screen, and
+   the padding steps (24px sides, 48px bottom) keep the content off the viewport's edge. The
+   top bar is a flex row with the brand on the left and the snapshot facts on the right; on a
+   narrow screen it wraps. The brand mark is a gold dot with a soft ring, the radar's sweep
+   in miniature, and the brand name is monospace, which sets it apart from the body text. */
 .shell { max-width: 1320px; margin: 0 auto; padding: var(--step-5) var(--step-6) var(--step-7); }
 .top {
   display: flex; align-items: flex-start; justify-content: space-between; gap: var(--step-5);
@@ -66,6 +72,13 @@ a { color: var(--accent); }
 .fact b { font-family: var(--font-num); font-size: 15px; font-weight: 500; color: var(--accent); }
 .fact span { color: var(--muted); font-size: 13px; }
 
+/* The controls: search, category, chain, watchlist-only, and the two tabs.
+   The controls sit on one wrapping flex row with a hairline above, so they read as a toolbar
+   rather than a form. The search field is the widest (260px) because a name is the longest
+   thing a reader types; the selects are 180px. The tabs are a segmented control: the active
+   tab is gold on dark, the inactive ones muted, and aria-pressed says which one is on. The
+   count sits at the row's far right, pushed there by margin-left auto, so it never collides
+   with the fields. */
 .controls { display: flex; flex-wrap: wrap; align-items: end; gap: var(--step-3); padding: var(--step-4) 0; border-top: 1px solid var(--border); }
 .field { display: grid; gap: var(--step-1); }
 .field label, .field .sub { color: var(--muted); font-size: 12px; }
@@ -82,6 +95,14 @@ a { color: var(--accent); }
 .check input { accent-color: var(--accent); width: 16px; height: 16px; }
 .count { margin-left: auto; color: var(--muted); font-size: 13px; align-self: center; }
 
+/* The board table: the ranked protocols, one row each, in a panel.
+   The panel is a surface with a hairline border and a 14px radius; the table inside uses
+   tabular numbers so the figures line up down the columns. A row is clickable (cursor
+   pointer, hover surface, gold tint when selected) and opens the detail drawer. The rank
+   badge is gold and monospace; the name stacks above its chips (category, chains, watchlist);
+   the implied-value bar is a 120px track with a gold fill scaled to the top row. Growth is
+   teal when up and red when down. The status dot is gold for "no token" and teal for "already
+   trades", so the two states are distinguishable at a glance and by colour alone. */
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-panel); overflow: hidden; }
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -110,6 +131,14 @@ tbody tr:last-child td { border-bottom: 0; }
 .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
 .status.live::before { background: var(--teal); }
 
+/* The model panel: the formula, stated in full, below the board.
+   The panel sits under the table with a 16px gap, so the reader sees the ranking first and
+   the arithmetic second. The formula is monospace with the constants in gold, which makes the
+   numbers the eye lands on, and it wraps anywhere, because a formula that overflows its panel
+   is a formula nobody reads. The empty state is centred with a 48px top pad and a primary
+   button, because an empty filter is a dead end and the way out should be obvious.
+   The note at the page's foot is muted 13px, with its lead-in bold, so the "how to read
+   this" guidance is present without shouting. */
 .model { margin-top: var(--step-4); padding: var(--step-5); display: grid; gap: var(--step-3); }
 .formula { font-family: var(--font-num); font-size: 13px; line-height: 1.7; color: var(--muted); overflow-wrap: anywhere; }
 .formula b { color: var(--accent); font-weight: 600; }
@@ -120,6 +149,15 @@ tbody tr:last-child td { border-bottom: 0; }
 .note { margin-top: var(--step-4); color: var(--muted); font-size: 13px; }
 .note b { color: var(--ink); }
 
+/* The detail drawer: a fixed panel on the right, 540px wide, over a dimmed backdrop.
+   The drawer is a native <dialog> positioned fixed to the right edge, full height, with a
+   hairline on its left and a 60% dark backdrop, so the board behind it is visible but clearly
+   behind. The head holds the rank line, the protocol name and its category and chains, with
+   the Close button at the far right. Each section (implied value, farm plan) is separated by
+   a hairline and 24px of space. The equation is a monospace grid with the label muted and
+   the value gold, so the model's inputs read as a ledger. The farm steps are an ordered
+   list with gold markers, the action bold and the cost and time muted monospace beneath it.
+   On a narrow screen the drawer is 94% of the viewport width, so it never overflows. */
 .detail {
   position: fixed; top: 0; right: 0; bottom: 0; width: min(540px, 94vw); z-index: 10;
   background: var(--surface); border: 0; border-left: 1px solid var(--border); padding: var(--step-5);

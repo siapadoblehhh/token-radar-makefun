@@ -144,6 +144,23 @@
     else window.history.replaceState(null, '', window.location.pathname + window.location.search);
   }
 
+  // The board's filtering and sorting, and why each rule is the way it is.
+  //
+  //   rows() is the filter. Four conditions, all of which must hold: the category (unless
+  //   "all"), the chain (unless "all", and a protocol counts if ANY of its chains matches),
+  //   watchlist-only (unless off, and a protocol counts if its slug is on the watchlist), and
+  //   the search text (unless empty, matched case-insensitively against the name, slug,
+  //   category and chains joined together). The search is a substring match, not a prefix
+  //   one, so "lend" finds Lending and "eth" finds Ethereum. An empty filter shows the whole
+  //   board; a filter that matches nothing shows the empty panel, not a broken table.
+  //   sortedRows() is the sort. Five keys: implied value (the default, descending), name
+  //   (alphabetical), TVL, seven-day growth, and age. Growth and age have null handling
+  //   (null growth sorts as -Infinity, null age as +Infinity) so a protocol with no data
+  //   does not crash the comparator and lands where a reader would expect it: at the bottom
+  //   for growth, at the end for age. The slug is the final tiebreak, ascending, so the sort
+  //   is total and the table never flickers between two renders. The direction flips when
+  //   the same column header is clicked twice, and resets to descending when a new column
+  //   is chosen, because a reader expects the biggest first.
   function rows() {
     var q = state.q.trim().toLowerCase();
     return DATA.rows.filter(function (r) {
@@ -173,6 +190,18 @@
     });
   }
 
+  // The header and the lede: what the page says about itself before the table.
+  //
+  //   header() is the top bar: the Token Radar brand and three facts (the snapshot date, the
+  //   source, the model version). The snapshot date matters because the board is a reading of
+  //   one day's snapshot, not a live feed; the model version matters because radar-2 is not
+  //   the starter's rule, and a reader should know which model produced the numbers.
+  //   lede() is the introduction: the watchlist size and the floor in dollars, the early
+  //   radar's size, and the four facts (watchlist covered, pre-token rows scored, early rows
+  //   below the floor, live-token protocols set aside). The lede also says the one thing a
+  //   reader must not misunderstand: implied value is a model, not a promise. A protocol at
+  //   $560M implied has not raised $560M and has not promised a token; the model says a
+  //   launch of that size would be consistent with its TVL, growth, age and breadth.
   function header() {
     return el('header', { class: 'top' },
       el('div', { class: 'brand' }, el('span', { class: 'mark' }), el('span', { class: 'brand-name', text: 'Token Radar' })),
@@ -199,6 +228,18 @@
     );
   }
 
+  // The controls: search, category, chain, watchlist-only, and the two tabs.
+  //
+  //   Every control writes the URL hash (writeHash) and re-renders, so a filtered view is a
+  //   shareable link: #category=Lending opens the board filtered to Lending, #p=steakhouse-
+  //   financial opens the detail drawer for that protocol, and #watch=1 shows the watchlist
+  //   only. The screenshots are taken by opening the page with a hash, which is how the
+  //   three views (board, detail, filtered) are produced from one page. The category and
+  //   chain lists are built from the data itself (every category and chain on the board),
+  //   so a new snapshot with a new category gets a new option without a code change. The two
+  //   tabs switch between the pre-token board and the live-token view; the count beside them
+  //   says how many rows the current tab shows, so a reader always knows the size of what
+  //   they are looking at.
   function controls() {
     var categories = Array.from(new Set(DATA.rows.map(function (r) { return r.category || 'Other'; }))).sort();
     var chains = Array.from(new Set(DATA.rows.reduce(function (acc, r) { return acc.concat(r.chains || []); }, []))).sort();
@@ -240,6 +281,18 @@
     );
   }
 
+  // The board table: the ranked protocols, one row each, strongest first.
+  //
+  //   Each row shows the rank badge, the name with its category and chain chips (and a
+  //   watchlist chip when the protocol is on the watchlist), the TVL, the seven-day growth
+  //   (green when up, red when down, "n/a" when the snapshot carries no figure), the age with
+  //   no token, the implied value with a bar scaled to the top row, and the status "no token".
+  //   The bar is a visual anchor: the top row's bar is full width, and every other row's is
+  //   proportional, so a reader sees at a glance how far the board falls from rank 1. The
+  //   row is clickable (and keyboard-focusable: Enter or Space opens it) and opens the detail
+  //   drawer for that protocol. An empty filter shows the empty panel with a Clear filters
+  //   button, not a broken table. The caption says what the table is and what a row does,
+  //   because a table without a caption is a grid without a sentence.
   function boardTable() {
     var list = sortedRows(rows());
     if (list.length === 0) {
@@ -298,6 +351,16 @@
     );
   }
 
+  // The live-token table: the protocols that already trade, set aside from the ranking.
+  //
+  //   This is the other half of the page's honesty. A reader who only sees pre-token
+  //   protocols might think every protocol on the page is a launch waiting to happen; the
+  //   live table shows the ones that already launched, with their market cap as a fact, not
+  //   a model. The columns are the status ("live"), the name and category, the TVL, the
+  //   seven-day growth, the market cap, and the status "already trades". The caption says
+  //   the same thing in one sentence, because the distinction between a model and a market
+  //   is the distinction the whole page turns on. The live set is the top 24 by market cap,
+  //   which is enough to show the contrast without drowning the page.
   function liveTable() {
     var tbody = el('tbody');
     DATA.live.forEach(function (r) {
@@ -321,6 +384,16 @@
     );
   }
 
+  // The model panel: the formula, stated in full, with the constants the snapshot used.
+  //
+  //   The panel prints the implied-value formula with the model's own constants filled in
+  //   (base multiple, growth floor and cap, growth weight, maturity floor, range and days,
+  //   breadth per chain and cap), so a reader can check any row's number by hand. Below the
+  //   formula, a paragraph says where each input comes from (TVL and growth from the
+  //   snapshot, age from the listing date, breadth from the chain count) and what the model
+  //   refuses to rank (wrapped, staked and bridged products of tokens that already trade).
+  //   The panel is the model's audit trail: a model whose formula is hidden is a black box,
+  //   and a black box is not a radar.
   function modelPanel() {
     var m = DATA.model;
     return el('section', { class: 'panel model' },
@@ -336,6 +409,19 @@
   var dialog = el('dialog', { class: 'detail', id: 'detail', 'aria-labelledby': 'detail-title' });
   dialog.addEventListener('close', function () { state.selected = null; writeHash(); });
 
+  // The detail drawer: one protocol, its model, and its farm plan, in full.
+  //
+  //   openDetail(slug) finds the row, sets it as selected (and writes the hash, so the drawer
+  //   is a shareable link), and fills the dialog with three sections. The head names the rank
+  //   ("Rank 1 of 198 — watchlist"), the protocol, and its category and chains. The implied
+  //   value section lists every input the model used — TVL, seven-day growth, age with no
+  //   token, chain count, and the three multipliers — then the implied value itself, and a
+  //   sentence that recomputes the row with the page's own arithmetic and says whether it
+  //   matches the board's number. That sentence is the page's self-check: if the recomputed
+  //   number ever differed from the board's, the page would say so, and the data would be
+  //   stale. The farm plan section lists the six steps, each with its action, cost and time.
+  //   The dialog is a native <dialog>, so Escape closes it, and closing it clears the
+  //   selection and the hash. A row that does not exist returns without opening anything.
   function openDetail(slug) {
     var row = DATA.rows.filter(function (r) { return r.slug === slug; })[0];
     if (!row) return;
